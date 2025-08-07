@@ -6,7 +6,7 @@
 #include <GL/gl.h>
 #include <math.h>
 
-#define PART_COUNT 3
+#define PART_COUNT 50
 
 
 typedef struct {

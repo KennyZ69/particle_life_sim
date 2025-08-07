@@ -22,13 +22,13 @@ void init_Particles_2D() {
 	for (int i = 0; i < PART_COUNT; i++) {
 		particles[i].x = randf(-5.0f, 5.0f);
 		particles[i].y = randf(-5.0f, 5.0f);
-		// particles[i].vx = randf(-0.50f, 0.50f);
-		// particles[i].vy = randf(-0.50f, 0.50f);
-		particles[i].vx = 0;
-		particles[i].vy = 0;
+		particles[i].vx = randf(-2.50f, 2.50f);
+		particles[i].vy = randf(-2.50f, 2.50f);
+		// particles[i].vx = 0;
+		// particles[i].vy = 0;
 		particles[i].radius = randf(0.2f, 0.25f);
-		// particles[i].color = colors[rand() % COLOR_COUNT];
-		particles[i].color = colors[0];
+		particles[i].color = colors[rand() % COLOR_COUNT];
+		// particles[i].color = colors[0];
 		particles[i].ax = 0.0f;
 		particles[i].ay = 0.0f;
 		particles[i].mass = particles[i].radius * particles[i].radius * M_PI; // Assuming mass is proportional to area
@@ -39,10 +39,10 @@ void init_Particles_2D() {
 }
 
 void move_particle(Particle_2D *p, float dt) {
-	// p->ax = p->fx / p->mass * ENERGY_LOSS;
-	// p->ay = p->fy / p->mass * ENERGY_LOSS;
-	p->ax = p->fx / p->mass;
-	p->ay = p->fy / p->mass;
+	p->ax = p->fx / p->mass * ENERGY_LOSS;
+	p->ay = p->fy / p->mass * ENERGY_LOSS;
+	// p->ax = p->fx / p->mass;
+	// p->ay = p->fy / p->mass;
 
 	Vec2D pos = {p->x, p->y};
 	
@@ -64,9 +64,9 @@ void update_Particles_2D(float dt) {
 	for (int i = 0; i < PART_COUNT; i++) {
 
 		// bounce_on_collision(&particles[i], particles);
-		// attract_color(&particles[i], particles, BOUNDS);
-		// move_particle(&particles[i], dt);
-		attract_color_simple(&particles[i], particles, BOUNDS);
+		attract_color(&particles[i], particles, 2.0f);
+		move_particle(&particles[i], dt);
+		// attract_color_simple(&particles[i], particles, 4.0f);
 		handle_bounds(&particles[i], dt);
 	}
 }

@@ -13,11 +13,12 @@ void apply_force(Particle_2D *p, Vec2D force) {
 
 void attract_color_simple(Particle_2D *p, Particle_2D *particles, float range) {
 	float fx = 0, fy = 0;
-	float damp =  0.5, g = -0.1;
+	float damp =  ENERGY_LOSS, g = 0.01;
+
+	// I should set also cap for the force so that it doesnt go into infinity when the particles are near
 
 	for (int i = 0; i < PART_COUNT; i++) {
 		Particle_2D *p2 = &particles[i];
-		// if (p2 == p || same_color(p2->color, p->color)) continue;
 		if (p2 == p || !same_color(p2->color, p->color)) continue;
 
 		float dx = p2->x - p->x;
@@ -31,8 +32,8 @@ void attract_color_simple(Particle_2D *p, Particle_2D *particles, float range) {
 			// printf("Applying force x = %.3f; y = %.3f...\n", fx, fy);
 		}
 		}
-	p->vx = (p->vx + fx) * damp;
-	p->vy = (p->vy + fy) * damp;
+	p->vx = (p->vx + fx) *ENERGY_LOSS;
+	p->vy = (p->vy + fy) *ENERGY_LOSS;
 
 	p->x += p->vx;
 	p->y += p->vy;
@@ -42,7 +43,7 @@ void attract_color(Particle_2D *p, Particle_2D *particles, float range) {
         for (int i = 0; i < PART_COUNT; i++) {
 		Particle_2D *p2 = &particles[i];
 		if (p2 == p) continue;
-		if (!same_color(p->color, p2->color)) continue;
+		// if (!same_color(p->color, p2->color)) continue; // here when the colors are different I could repel them gently
 
 		float dx = p2->x - p->x;
 		float dy = p2->y - p->y;
@@ -50,17 +51,26 @@ void attract_color(Particle_2D *p, Particle_2D *particles, float range) {
 
 		if (dist_sq <= 0) continue;
 		float dist = sqrtf(dist_sq);
-		if (dist > range) continue;
+		if (dist > range || dist <= 0) continue;
 
-		float force = (GRAVITY * p->mass * p2->mass) / dist_sq;
 
-		printf("Adding force: %.3f...x = %.2f; y = %.2f\n", force, force*dx/dist, force*dy/dist);
+		float rads = p2->radius + p->radius;
+		float force, g = GRAVITY;
+		if (dist < rads || !same_color(p2->color, p->color)) { // when particles come too close near each other, repel them
+			g = -GRAVITY;
+		}
+		force = (g * p->mass * p2->mass) / dist_sq;
 
-		p->fx += force * dx / dist;
-		p->fy += force * dy / dist;
+		// printf("Adding force: %.3f...x = %.2f; y = %.2f\n", force, force*dx/dist, force*dy/dist);
 
+		p->fx += force < 1 ? (force * dx / dist) : (dx / dist);
+		p->fy += force < 1 ? (force * dy / dist) : (dy / dist);
 	}
 }
+
+// void repel_different(Particle_2D *p1, Particle_2D *p2) {
+//
+// }
 
 void bounce_on_collision(Particle_2D *p, Particle_2D *particles) {
 	for (int i = 0; i < PART_COUNT; i++) {
