@@ -22,19 +22,24 @@ void init_Particles_2D() {
 	for (int i = 0; i < PART_COUNT; i++) {
 		particles[i].x = randf(-5.0f, 5.0f);
 		particles[i].y = randf(-5.0f, 5.0f);
-		particles[i].vx = randf(-2.50f, 2.50f);
-		particles[i].vy = randf(-2.50f, 2.50f);
+		particles[i].radius = randf(0.2f, 0.25f);
+		particles[i].mass = particles[i].radius * particles[i].radius * M_PI; // Assuming mass is proportional to area
+		particles[i].color = colors[rand() % COLOR_COUNT];
+		if (particles[i].color.idx == 1) {
+			particles[i].vx = 0;
+			particles[i].vy = 0;
+		} else {
+		particles[i].vx = randf(-0.50f, 0.50f);
+		particles[i].vy = randf(-0.50f, 0.50f);
+		}
 		// particles[i].vx = 0;
 		// particles[i].vy = 0;
-		particles[i].radius = randf(0.2f, 0.25f);
-		particles[i].color = colors[rand() % COLOR_COUNT];
 		// particles[i].color = colors[0];
+		particles[i].prev = (Vec2D){particles[i].x-particles[i].vx*DELTA, particles[i].y-particles[i].vy*DELTA};
 		particles[i].ax = 0.0f;
 		particles[i].ay = 0.0f;
-		particles[i].mass = particles[i].radius * particles[i].radius * M_PI; // Assuming mass is proportional to area
 		particles[i].fx = 0;
 		particles[i].fy = 0;
-		particles[i].prev = (Vec2D){particles[i].x-particles[i].vx*DELTA, particles[i].y-particles[i].vy*DELTA};
 	}
 }
 
@@ -63,11 +68,12 @@ void move_particle(Particle_2D *p, float dt) {
 void update_Particles_2D(float dt) {
 	for (int i = 0; i < PART_COUNT; i++) {
 
-		// bounce_on_collision(&particles[i], particles);
-		attract_color(&particles[i], particles, 2.0f);
-		move_particle(&particles[i], dt);
+		// apply_rule_matrix(&particles[i], particles, 5);
+		// attract_color(&particles[i], particles, 2.0f);
+		// move_particle(&particles[i], dt);
 		// attract_color_simple(&particles[i], particles, 4.0f);
-		handle_bounds(&particles[i], dt);
+		// handle_bounds(&particles[i], dt);
+		apply_rules_simple(&particles[i], particles, 5);
 	}
 }
 

@@ -22,6 +22,7 @@ typedef unsigned long i64;
 
 typedef struct {
 	float r, g, b;
+	i8 idx;
 } Color;
 
 typedef struct {
@@ -59,13 +60,13 @@ static inline float randf(float min, float max) {
 	return ((float)rand() / RAND_MAX) * (max - min) + min;
 }
 
-static inline Color color(float r, float g, float b) {
-	Color c = {r, g, b};
+static inline Color color(float r, float g, float b, i8 i) {
+	Color c = {r, g, b, i};
 	return c;
 }
 
-static inline Color randColor() {
-	return color(randf(0.0f, 1.0f), randf(0.0f, 1.0f), randf(0.0f, 1.0f));
+static inline Color randColor(i8 i) {
+	return color(randf(0.0f, 1.0f), randf(0.0f, 1.0f), randf(0.0f, 1.0f), i);
 }
 
 // Idk how to do this properly, I need to draw a simple square outline for the bounds to see the used space
@@ -83,12 +84,12 @@ static inline void drawBounds() {
 	glEnd();
 }
 
-#define COLOR_COUNT 5
+#define COLOR_COUNT 2
 
 static inline Color *init_colors() {
 	Color *colors = malloc(COLOR_COUNT * sizeof(Color));
 	for (int i = 0; i < COLOR_COUNT; i++) {
-		colors[i] = randColor();
+		colors[i] = randColor(i);
 	}
 	return colors;
 }

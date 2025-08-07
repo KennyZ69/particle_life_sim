@@ -3,12 +3,58 @@
 #include "in/rules.h"
 #include "in/particle.h"
 #include "in/util.h"
-#include <stdio.h>
+#include <math.h>
 
 void apply_force(Particle_2D *p, Vec2D force) {
 	Vec2D acc = Vec2D_mult(force, 1.0f / p->mass);
 	p->ax += acc.x;
 	p->ay += acc.y;
+}
+
+void apply_rule_matrix(Particle_2D *p, Particle_2D *particles, float range) {
+	for (int i = 0; i < PART_COUNT; i++) {
+		Particle_2D *p2 = &particles[i];
+		if (p2 == p) continue;
+
+		float dx = p2->x - p->x;
+		float dy = p2->y - p->y;
+		float dist_sq = dx*dx + dy*dy;
+
+		if (dist_sq <= 0) continue;
+		float dist = sqrtf(dist_sq);
+		if (dist > range || dist <= 0) continue;
+
+		float G = Rule_Matrix[p->color.idx][p2->color.idx] * GRAVITY;
+		float F = (G * p->mass * p2->mass) / dist_sq;
+
+		p->fx += F < 1 ? (F * dx / dist) : (dx / dist);
+		p->fy += F < 1 ? (F * dy / dist) : (dy / dist);
+	}
+}
+
+void apply_rules_simple(Particle_2D *p, Particle_2D *particles, float range) {
+	float fx = 0, fy = 0;
+	for (int i = 0; i < PART_COUNT; i++) {
+		Particle_2D *p2 = &particles[i];
+		if (p2 == p) continue;
+		
+		float dx = p2->x - p->x;
+		float dy = p2->y - p->y;
+		float dist_sq = dx*dx + dy*dy;
+		if (dist_sq > 0 && dist_sq < range*range) {
+			float dist = sqrtf(dist_sq);
+			float G = Rule_Matrix[p->color.idx][p2->color.idx] * GRAVITY;
+			float F = G * 1/dist;
+			fx += (F * dx);
+			fy += (F * dy);
+		}
+	}
+
+	p->vx = (p->vx + fx) * ENERGY_LOSS;
+	p->vy = (p->vy + fy) * ENERGY_LOSS;
+	p->x += p->vx;
+	p->y += p->vy;
+	handle_bounds(p, DELTA);
 }
 
 void attract_color_simple(Particle_2D *p, Particle_2D *particles, float range) {
@@ -32,8 +78,9 @@ void attract_color_simple(Particle_2D *p, Particle_2D *particles, float range) {
 			// printf("Applying force x = %.3f; y = %.3f...\n", fx, fy);
 		}
 		}
-	p->vx = (p->vx + fx) *ENERGY_LOSS;
-	p->vy = (p->vy + fy) *ENERGY_LOSS;
+	p->vx = (p->vx + fx) *ENERGY_LOSS >= 3 ? 3 * ENERGY_LOSS : (p->vx +fx) * ENERGY_LOSS;
+	p->vy = (p->vy + fy) *ENERGY_LOSS >= 3 ? 3 * ENERGY_LOSS : (p->vy +fy) * ENERGY_LOSS;
+	// p->vy = (p->vy + fy) *ENERGY_LOSS;
 
 	p->x += p->vx;
 	p->y += p->vy;
@@ -67,10 +114,6 @@ void attract_color(Particle_2D *p, Particle_2D *particles, float range) {
 		p->fy += force < 1 ? (force * dy / dist) : (dy / dist);
 	}
 }
-
-// void repel_different(Particle_2D *p1, Particle_2D *p2) {
-//
-// }
 
 void bounce_on_collision(Particle_2D *p, Particle_2D *particles) {
 	for (int i = 0; i < PART_COUNT; i++) {

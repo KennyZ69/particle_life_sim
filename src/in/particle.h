@@ -6,7 +6,7 @@
 #include <GL/gl.h>
 #include <math.h>
 
-#define PART_COUNT 50
+#define PART_COUNT 5
 
 
 typedef struct {
@@ -33,3 +33,5 @@ void draw_Particle_2D(Particle_2D *p);
 void reset();
 
 void handle_bounds(Particle_2D *p, float dt);
+
+void apply_rule_matrix(Particle_2D *p, Particle_2D *particles, float range);
